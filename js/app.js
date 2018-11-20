@@ -1,6 +1,8 @@
 $.noConflict();
 
 jQuery(document).ready(function($){
+
+  let stop;
 	
 	claro()
 	rellenarCuadro()
@@ -31,10 +33,24 @@ jQuery(document).ready(function($){
 			//iniciarjuego();
 			//$("#timer").timer();
 
-			Example2.Timer.play();
-		}else if($("button.btn-reinicio").text()=="Reiniciar"){
+      Example2.Timer.play();
+      stop = false;
+      addCandyEvents();
+    } else if ($("button.btn-reinicio").text() == "Reiniciar" && $($('.panel-tablero').hide())){
 			$("button.btn-reinicio").text("Iniciar")
-			Example2.resetCountdown();
+      $('.panel-tablero').show()
+      $('.panel-score').removeClass('final')
+      $('.time').show()
+      $('.panel-score h1[class="data-titulo"]').remove()
+      $('#movimientos-text').text("0");
+      $('#score-text').text("0");
+      for(var i=1; i<8; i++){
+        var selector = '.col-' + i + '';
+        $(selector+' img').remove();
+        console.log(selector)
+      }
+      rellenarCuadro()
+      Example2.resetCountdown();
 		}
 	})
 
@@ -47,7 +63,7 @@ jQuery(document).ready(function($){
 	            $countdown.html(formatTime(currentTime));
 	            if (currentTime == 0) {
 	                Example2.Timer.stop();
-	                //timerComplete();
+	                timerComplete();
 	                Example2.resetCountdown();
 	                return;
 	            }
@@ -55,8 +71,17 @@ jQuery(document).ready(function($){
 	            if (currentTime < 0) currentTime = 0;
 	        },
 	        timerComplete = function() {
-	        	Example2.Timer.stop()
-	            alert('Example 2: Countdown timer complete!');
+            Example2.Timer.stop()
+            stop = true;
+            disableCandyEvents()
+            $('.panel-tablero').fadeOut(1000, function(){
+              $(this).hide();
+              $('.panel-score').addClass('final')
+                .prepend('<h1 class="data-titulo">Juego Terminado</h1>');
+              $('.time').hide().fadeOut("slow");
+            });
+            //$("button.btn-reinicio").text("Iniciar");
+            //alert('Se ha terminado el tiempo!');
 	        },
 	        init = function() {
 	            $countdown = $('#timer');
@@ -91,17 +116,17 @@ jQuery(document).ready(function($){
 	function checkTablero() {
     for (var i = 1; i < 8; i++) {
       var selector = '.col-' + i + '';
-      var faltantes = 7- $(selector).children().length
+      var faltantes = 7 - $(selector).children().length
       console.log(faltantes)
       if($(selector).children().length<7){
         for (var j = 0; j < faltantes; j++) {
           console.log($(selector)[0].children, $(selector).children().length)
           var aleatoria = Math.round(Math.random() * 3) + 1;
-          $(selector).append('<img class=elemento src=image/' + aleatoria + '.png>');
+          $(selector).prepend('<img class=elemento src=image/' + aleatoria + '.png>');
         }
       }
     }
-    asignarId()
+    asignarId();
 		//rellenarCuadro();
   }
   
@@ -114,6 +139,8 @@ jQuery(document).ready(function($){
         console.log(hijos[j].id)
       }
     }
+    //enableCandyEvents();
+    addCandyEvents()
   }
 
 	function rellenarCuadro(){
@@ -125,7 +152,7 @@ jQuery(document).ready(function($){
         $(selector).append('<img id="candy' + i + j + '" class=elemento src=image/' + aleatoria + '.png>');
       }
 		}
-		addCandyEvents()
+		//addCandyEvents()
 	}
 
 	//Evento click y drag sobre las imágenes
@@ -154,35 +181,6 @@ jQuery(document).ready(function($){
     candyDrag.position.bottom = -Math.min(100, candyDrag.position.top);
     candyDrag.position.left = Math.min(100, candyDrag.position.left);
     candyDrag.position.right = -Math.min(100, candyDrag.position.left);
-		/*if(candyDrag.position.left<0){
-			if(candyDrag.position.top<0){
-				candyDrag.position.top = 0;
-				candyDrag.position.bottom = Math.min(100, candyDrag.position.top);
-        candyDrag.position.left = Math.min(100, candyDrag.position.left);
-        candyDrag.position.right = 0;
-        console.log('left<0 y top<0')
-			}else{
-				candyDrag.position.top = Math.min(100, candyDrag.position.top);
-				candyDrag.position.bottom = 0;
-        candyDrag.position.left = Math.min(100, candyDrag.position.left);
-        candyDrag.position.right = 0;
-        console.log('left<0 y top>0')
-			}
-		}else{
-      if (candyDrag.position.top < 0) {
-        candyDrag.position.top = Math.min(100, candyDrag.position.top);
-        candyDrag.position.bottom = 0;
-        candyDrag.position.left = Math.min(100, candyDrag.position.left);
-        candyDrag.position.right = 0;
-        console.log('left>0 y top<0')
-      } else {
-        candyDrag.position.right = Math.min(100, candyDrag.position.left);
-        candyDrag.position.bottom = Math.min(100, candyDrag.position.top);
-        candyDrag.position.top = 0;
-        candyDrag.position.left = 0;
-        console.log('left>0 y top>0')
-      }
-		}*/
 	}
 
 	function disableCandyEvents() {
@@ -211,12 +209,24 @@ jQuery(document).ready(function($){
       console.log((Number(candyDraga[0].id.substring(5)) + 10).toString(), event, candyDraga[0].id.substring(5), candyDraga, candyDrop, dragSrc, dropSrc, candyDraga[0].id, candyDrop[0].id)
 
       setTimeout(function () {
-        //checkTablero();
+        /*var arreglo = [];
+        for(var i=1; i<8; i++){
+          var selector = '.col-'+i+'';
+          var children = $(selector).children()
+          console.log(children)
+          for(var j = 0; j<7; j++){
+            console.log($('#' + children[j].id))
+            if($('#'+children[j].id).hasClass('delete')){
+              arreglo.push(children[j].id)
+              console.log(arreglo)
+            }
+          }
+        }*/     
+
 
         if ($('img.delete').length === 0) {
-          
-          candyDraga.attr('src', dropSrc);
-          candyDrop.attr('src', dragSrc);
+          candyDraga.attr('src', dragSrc);
+          candyDrop.attr('src', dropSrc);
         } else {
           updateMoves();
         }
@@ -277,22 +287,6 @@ jQuery(document).ready(function($){
           console.log("No son iguales", arraysId);
         }
       }
-
-			//var element = $(this.draggable);
-			//var anterior = element.prev();
-			//var siguiente = element.next();
-			/*var eleSrc = element[i].atri;
-			var antSrc = anterior.attr('src');
-      var sigSrc = siguiente.attr('src');
-      console.log(element, anterior, siguiente)*/
-			/*if(element.attr('src') === anterior.attr('src') && element.attr('src') === siguiente.attr('src')){
-				console.log('Los elementos '+eleSrc+' , '+antSrc+' y '+sigSrc+' son iguales')
-				element.hide();
-				anterior.remove();
-				siguiente.remove();
-			}else{
-				alert('no hay matches')
-			}*/
     });
     
     var m=10;
@@ -380,14 +374,14 @@ jQuery(document).ready(function($){
       console.log($('#' + element + '')[0]);
     })
     console.log(arreglo)
-    setValidations()
+    setValidations(arreglo)
   }
 
-  function setValidations() {
+  function setValidations(arreglo) {
     //columnValidation();
     //rowValidation();
     if ($('img.delete').length !== 0) {
-      deletesCandyAnimation();
+      deletesCandyAnimation(arreglo);
     }
   }
   
@@ -404,22 +398,38 @@ jQuery(document).ready(function($){
     $('#movimientos-text').text(result);
   }
 
-  function deletesCandyAnimation(){
+  function updateScore(cantidad){
+    console.log(stop)
+    if (stop==false){
+      console.log(cantidad)
+      var puntaje = cantidad * 10;
+      var actualValue = Number($('#score-text').text());
+      var result = actualValue + puntaje;
+      console.log(actualValue, result)
+      $('#score-text').text(result);
+    }
+  }
+
+  function deletesCandyAnimation(arreglo){
     animacionCandys()
+    updateScore(arreglo.length)
     setTimeout(function(){
       $('img.delete').remove()
-      checkTablero()
-    }, 5000)
+      setTimeout(function(){
+        checkTablero()
+      }, 50)
+    }, 3000)
   }
 
   function animacionCandys(){
+    disableCandyEvents();
     animacion = function () {
-      $('img.delete').fadeTo(500, .1)
-        .fadeTo(500, 1);
+      
+      $('img.delete').fadeTo(300, .1)
+        .fadeTo(300, 1);
     }
     setInterval(animacion, 1000);
   }
-
 })
 
 

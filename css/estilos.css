@@ -51,6 +51,10 @@ body{
   justify-content: space-between;
 }
 
+.final{
+  width: 100% !important;
+}
+
 
 .score, .moves, .time{
   text-align: center;
@@ -60,7 +64,6 @@ body{
   border-radius: 5px;
   background: rgba(232, 115, 6, 0.5);
 }
-
 
 .buttons{
   height: 10%;
@@ -72,6 +75,7 @@ body{
 .data-titulo, .data-info{
   font-family: gameFont;
   color: #E8CA06;
+  text-align: center;
 }
 .titulo-over{
   font-family: gameFont;
